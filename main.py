@@ -263,6 +263,8 @@ def get_app_token(login_token):
     return app_token
 
 
+# TG推送
+
 def main_handler(event, context):
     getBeijinTime()
 
