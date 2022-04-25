@@ -13,6 +13,11 @@ open_get_weather = sys.argv[3]
 # 设置获取天气的地区（上面开启后必填）如：area = "宁波"
 area = sys.argv[4]
 
+corpsecret = sys.argv[5]  # 自建应用，每个自建应用里都有单独的secret
+agentid = 1000002
+corpid = 'wwc628a1b8f3fcd830'
+
+
 # 以下如果看不懂直接默认就行只需改上面
 
 # 系数K查询到天气后降低步数比率，如查询得到设置地区为多云天气就会在随机后的步数乘0.9作为最终修改提交的步数
@@ -141,6 +146,8 @@ def getBeijinTime():
             for user_mi, passwd_mi in zip(user_list, passwd_list):
                 msg_mi += main(user_mi,passwd_mi,min_1, max_1)
                 #print(msg_mi)
+            if a:
+                pushWX(msg_mi)
     else:
         print("当前不是主人设定的提交步数时间或者主人设置了0步数呢，本次不提交")
         return
@@ -263,7 +270,50 @@ def get_app_token(login_token):
     return app_token
 
 
-# TG推送
+# 微信推送
+def get_access_token():
+    params={
+        'corpid':corpid,
+        'corpsecret':corpsecret
+    }
+    r = requests.get('https://qyapi.weixin.qq.com/cgi-bin/gettoken',params=params).json()
+    #r = json.loads(r)
+    #print(r)
+    if r['errcode'] == 0:
+        access_token_content = r['access_token']
+        return {'errcode':0,'access_token':access_token_content}
+    else:
+        return {'errcode':r['errcode'],'errmsg':r['errmsg']}
+
+def pushWX(msg):
+
+    access_token_code = get_access_token()
+
+    data = {
+                    "touser" : "@all",
+                    "toparty" : "@all",
+                    "totag" : "@all",
+                    "msgtype" : "text",
+                    "agentid" : agentid,
+                    "text" : {
+                        "content" :msg
+                    },
+                    "safe":0,
+                    "enable_id_trans": 0,
+                    "enable_duplicate_check": 0,
+                    "duplicate_check_interval": 1800
+                }
+    
+    if access_token_code['errcode'] == 0:
+        access_token = access_token_code['access_token']
+    else:
+        print(access_token_code)
+    
+    r = requests.post('https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token={ACCESS_TOKEN}'.format(ACCESS_TOKEN=access_token),data = json.dumps(data)).json()
+    if r['errcode'] == 0:
+        print('微信推送成功')
+    else:
+        print(r)
 
 def main_handler(event, context):
     getBeijinTime()
