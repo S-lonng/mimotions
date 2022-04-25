@@ -149,7 +149,10 @@ def getBeijinTime():
             if a:
                 pushWX(msg_mi)
     else:
-        print("当前不是主人设定的提交步数时间或者主人设置了0步数呢，本次不提交")
+        msg_mi = "当前不是主人设定的提交步数时间或者主人设置了0步数呢，本次不提交"
+        print(msg_mi)
+        pushWX(msg_mi)
+
         return
 
 
